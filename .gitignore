@@ -1,0 +1,57 @@
+# ==========================================
+# STM32 Professional CMake .gitignore
+# ==========================================
+
+# 1. CMake & Build Artifacts
+# ------------------------------------------
+# Ignore all build directories (VS Code CMake Tools usually uses build/ or out/)
+build/
+out/
+bin/
+# Ignore raw CMake cache files just in case they leak out
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# 2. Compiled Object Files & Binaries
+# ------------------------------------------
+*.o
+*.a
+*.elf
+*.bin
+*.hex
+*.map
+*.lst
+*.su
+
+# 3. Visual Studio Code
+# ------------------------------------------
+.vscode/*
+# BUT keep the important shared configurations!
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/c_cpp_properties.json
+# Ignore IntelliSense database files
+.vscode/ipch/
+*.code-workspace
+.browse.c_cpp.db*
+
+# 4. Old STM32CubeIDE / Eclipse Artifacts
+# ------------------------------------------
+# Since you are using CMake now, ignore the old Eclipse IDE files
+.project
+.cproject
+.settings/
+Debug/
+Release/
+*.launch
+
+# 5. OS Specific (Windows / Mac / Linux)
+# ------------------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*~
