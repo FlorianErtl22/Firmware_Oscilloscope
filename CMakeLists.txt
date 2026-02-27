@@ -47,11 +47,18 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Src/app_main.c
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Src/communication.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Src/adc_cntrl.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Src/protocol.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Inc
+)
+
+# 🌟 ADD THIS NEW BLOCK: Give ST's main.c access to your App headers!
+target_include_directories(stm32cubemx INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Inc
 )
 
