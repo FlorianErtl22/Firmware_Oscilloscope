@@ -54,7 +54,6 @@
 void SystemClock_Config(void);
 static void MPU_Config(void);
 /* USER CODE BEGIN PFP */
-void tx_data(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -70,9 +69,6 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	enum case_t {
-		START_ADC, SEND_DATA, STOP_ADC, WAIT
-	};
   /* USER CODE END 1 */
 
   /* MPU Configuration--------------------------------------------------------*/
@@ -102,38 +98,21 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   App_Init();
-	// setvbuf(stdin, NULL, _IONBF, 0); //disable buffering for input stream
- /* USER CODE END 2 */
+  // setvbuf(stdin, NULL, _IONBF, 0); //disable buffering for input stream
+  /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	bool command_ready = false;
-
-	t_protocol prot;
-
-
-
-	while (1) {
+  while (1)
+  {
     App_Loop();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
-//    printf("Waiting for valid command...\n");
-		while (!command_ready) {
-			if (HAL_UART_Receive(&huart3, &rx_buf[0], 1, HAL_MAX_DELAY) == HAL_OK) {
-				if ((rx_buf[0] == 0x01) || (rx_buf[0] == 0x02) || (rx_buf[0] == 0x03)) {
-					if (HAL_UART_Receive(&huart3, &rx_buf[1], 5, 100) == HAL_OK) {
-						command_ready = true;
-					}
-				}
-			}
-		}
+    //    printf("Waiting for valid command...\n");
+  }
 
-		assign_command_message(rx_buf, &prot);
-		process_command(&prot, tx_data);
-		command_ready = false;
-	}
   /* USER CODE END 3 */
 }
 
@@ -199,26 +178,22 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-PUTCHAR_PROTOTYPE {
-	/* Place your implementation of fputc here */
-	/* e.g. write a character to the USART1 and Loop until the end of transmission */
-	HAL_UART_Transmit(&huart3, (uint8_t*) &ch, 1, 0xFFFF);
+PUTCHAR_PROTOTYPE
+{
+  /* Place your implementation of fputc here */
+  /* e.g. write a character to the USART1 and Loop until the end of transmission */
+  HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 0xFFFF);
 
-	return ch;
+  return ch;
 }
 
-GETCHAR_PROTOTYPE {
-	uint8_t ch = 0;
-	__HAL_UART_CLEAR_OREFLAG(&huart3);
-	HAL_UART_Receive(&huart3, (uint8_t*) &ch, 1, HAL_MAX_DELAY);
-	HAL_UART_Transmit(&huart3, (uint8_t*) &ch, 1, HAL_MAX_DELAY); //echo output for console
-	return ch;
-}
-
-void tx_data(void) {
-//	HAL_TIM_Base_Stop(&htim3);
-	HAL_UART_Transmit(&huart3, (uint8_t*) tx_buf, sizeof(tx_buf), 10000);
-//	HAL_TIM_Base_Start(&htim3);
+GETCHAR_PROTOTYPE
+{
+  uint8_t ch = 0;
+  __HAL_UART_CLEAR_OREFLAG(&huart3);
+  HAL_UART_Receive(&huart3, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+  HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, HAL_MAX_DELAY); // echo output for console
+  return ch;
 }
 
 /* USER CODE END 4 */
@@ -243,10 +218,11 @@ void MPU_Config(void)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-/* User can add his own implementation to report the HAL error return state */
-__disable_irq();
-while (1) {
-}
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+  while (1)
+  {
+  }
   /* USER CODE END Error_Handler_Debug */
 }
 #ifdef USE_FULL_ASSERT
