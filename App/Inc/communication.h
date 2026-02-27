@@ -7,7 +7,10 @@
 #include <stdint.h>
 #include "usart.h"
 
-uint8_t rx_buf[6] = { };
-uint16_t tx_buf[1024] = { };
+#define RX_BUFFER_SIZE 6
+#define TX_BUFFER_SIZE 1024
+
+extern uint8_t  rx_buf[RX_BUFFER_SIZE];
+extern uint16_t tx_buf[TX_BUFFER_SIZE];
 
 #endif /* COMMUNICATION_H_ */
