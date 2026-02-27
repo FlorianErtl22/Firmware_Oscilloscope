@@ -8,26 +8,24 @@
 #ifndef ADC_CNTRL_H_
 #define ADC_CNTRL_H_
 
+#include "stm32h7xx_hal.h"
+#include "stm32h7xx_hal_adc.h"
 #include <stdint.h>
 
+
 typedef struct {
-	uint32_t clk_prescaler;
+    float    amplitude;
 	uint32_t resolution;
 	uint32_t number_of_samples;
+	
+    uint32_t adc_prescaler;
+    uint32_t timer_prescaler;
+    uint32_t timer_arr;
 } t_adc_params;
 
-void init_adc()
-{
-	
-    // Calibrate ADC
-    if (HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED) != HAL_OK)
-    {
-        Error_Handler();
-    }
+void init_adc(ADC_HandleTypeDef * hadc, TIM_HandleTypeDef * htim, uint8_t * tx_buf, uint32_t len_tx_buf);
 
-    	HAL_ADC_Start_DMA(&hadc1, (uint32_t*) tx_buf,sizeof(tx_buf) / sizeof(tx_buf[0]));
-	HAL_TIM_Base_Start(&htim3);
-}
+void update_adc(t_adc_params * params, ADC_HandleTypeDef * hadc, TIM_HandleTypeDef * htim);
 
 
 #endif /* INC_ADC_CNTRL_H_ */
