@@ -25,7 +25,7 @@ typedef struct {
 
 void init_adc(ADC_HandleTypeDef *hadc, TIM_HandleTypeDef *htim, uint16_t *dma_buf, uint32_t len_tx_buf);
 
-void update_adc(t_adc_params * params, ADC_HandleTypeDef * hadc, TIM_HandleTypeDef * htim);
+void update_adc(t_adc_params *params, ADC_HandleTypeDef *hadc, TIM_HandleTypeDef *htim, ADC_ChannelConfTypeDef *sConfig);
 
 
 #endif /* INC_ADC_CNTRL_H_ */

@@ -35,7 +35,7 @@ extern "C" {
 extern ADC_HandleTypeDef hadc1;
 
 /* USER CODE BEGIN Private defines */
-
+extern ADC_ChannelConfTypeDef sConfig_adc1;
 /* USER CODE END Private defines */
 
 void MX_ADC1_Init(void);

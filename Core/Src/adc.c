@@ -21,7 +21,7 @@
 #include "adc.h"
 
 /* USER CODE BEGIN 0 */
-
+ADC_ChannelConfTypeDef sConfig_adc1 = {0};
 /* USER CODE END 0 */
 
 ADC_HandleTypeDef hadc1;
@@ -79,15 +79,16 @@ void MX_ADC1_Init(void)
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_16CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
-  sConfig.OffsetNumber = ADC_OFFSET_NONE;
+  sConfig.OffsetNumber = ADC_OFFSET_1;
   sConfig.Offset = 0x7fff;
+  sConfig.OffsetRightShift = DISABLE;
   sConfig.OffsetSignedSaturation = ENABLE;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
   /* USER CODE BEGIN ADC1_Init 2 */
-
+  sConfig_adc1 = sConfig;
   /* USER CODE END ADC1_Init 2 */
 
 }

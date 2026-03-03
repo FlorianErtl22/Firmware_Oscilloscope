@@ -102,7 +102,7 @@ void process_command(t_protocol *prot)
 
 	// run config
 	case 0x03:
-		update_adc(&adc_params, &hadc1, &htim3);
+		update_adc(&adc_params, &hadc1, &htim3, &sConfig_adc1);
 		init_adc(&hadc1, &htim3, tx_buf, sizeof(tx_buf) / sizeof(tx_buf[0]));
 		printf("Hello\n");
 		break;
