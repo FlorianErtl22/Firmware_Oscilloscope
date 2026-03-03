@@ -23,7 +23,7 @@ typedef struct {
     uint32_t timer_arr;
 } t_adc_params;
 
-void init_adc(ADC_HandleTypeDef * hadc, TIM_HandleTypeDef * htim, uint8_t * tx_buf, uint32_t len_tx_buf);
+void init_adc(ADC_HandleTypeDef *hadc, TIM_HandleTypeDef *htim, uint16_t *dma_buf, uint32_t len_tx_buf);
 
 void update_adc(t_adc_params * params, ADC_HandleTypeDef * hadc, TIM_HandleTypeDef * htim);
 

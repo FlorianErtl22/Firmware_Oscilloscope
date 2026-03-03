@@ -12,7 +12,7 @@
 
 void App_Init(void)
 {
-	init_adc(&hadc1, &htim3, (uint8_t*)tx_buf, sizeof(tx_buf));
+	init_adc(&hadc1, &htim3, tx_buf, sizeof(tx_buf)/sizeof(tx_buf[0]));
 }
 
 void App_Loop(void)
@@ -33,7 +33,7 @@ void App_Loop(void)
 		}
 
 		assign_command_message(rx_buf, &prot);
-		process_command(&prot, tx_buf);
+		process_command(&prot);
 		command_ready = false;
 	}
 }
