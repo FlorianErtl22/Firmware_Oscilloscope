@@ -175,6 +175,15 @@ SECTIONS
   }
 
   .ARM.attributes 0 : { *(.ARM.attributes) }
+
+  /* User-defined section for DMA buffers in RAM_D2 */
+  .ram_d2_section :
+  {
+    . = ALIGN(4);
+    *(.RAM_D2)       /* Catch variables tagged with .RAM_D2 */
+    *(.RAM_D2*)      /* Catch variations of the tag */
+    . = ALIGN(4);
+  } >RAM_D2
 }
 
 
