@@ -21,17 +21,14 @@ void assign_command_message(uint8_t *buffer, t_protocol *prot)
 
 void tx_data(void)
 {
-	// 1. FREEZE THE HARDWARE
 	// Stop the Timer first to prevent new ADC triggers
 	HAL_TIM_Base_Stop(&htim3);
 
 	// Read the DMA counter BEFORE stopping the DMA, as stopping it might clear the register
 	uint32_t ndtr = __HAL_DMA_GET_COUNTER(hadc1.DMA_Handle);
 
-	// Safely stop the DMA
 	HAL_ADC_Stop_DMA(&hadc1);
 
-	// 2. CALCULATE THE SPLIT
 	// Determine where the DMA was about to write next
 	uint32_t write_index = TX_BUFFER_SIZE - ndtr;
 
@@ -41,15 +38,8 @@ void tx_data(void)
 		write_index = 0;
 	}
 
-	// Part 1: Oldest Data (from write_index to the end of the buffer)
-	// The number of elements here is exactly equal to 'ndtr'
 	uint32_t elements_part1 = TX_BUFFER_SIZE - write_index;
-
-	// Part 2: Newest Data (from index 0 up to the write_index)
 	uint32_t elements_part2 = write_index;
-
-	// 3. TRANSMIT CHRONOLOGICALLY
-	// Remember to multiply elements by 2 (sizeof(uint16_t)) because UART expects bytes
 
 	if (elements_part1 > 0)
 	{
@@ -61,11 +51,8 @@ void tx_data(void)
 		HAL_UART_Transmit(&huart3, (uint8_t *)&tx_buf[0], (elements_part2 * sizeof(uint16_t)), 10000);
 	}
 
-	// 4. RESTART THE HARDWARE
-	// Restarting the DMA resets the internal pointer to index 0
+	// RESTART THE HARDWARE
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t *)tx_buf, TX_BUFFER_SIZE);
-
-	// Start the Timer to resume background sampling
 	HAL_TIM_Base_Start(&htim3);
 }
 
