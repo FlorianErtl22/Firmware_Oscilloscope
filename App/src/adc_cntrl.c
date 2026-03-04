@@ -10,6 +10,8 @@
 #include "stm32h7xx_hal_tim.h"
 #include <stdint.h>
 
+t_adc_params adc_params;
+
 /**
  * @brief  Initializes, calibrates, and starts a timer-triggered ADC using DMA.
  * * @details This function safely halts any ongoing ADC and Timer operations before

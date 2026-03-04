@@ -9,8 +9,6 @@
 
 #define MAX_VALID_ID (sizeof(parameter_map) / sizeof(parameter_map[0]) - 1)
 
-t_adc_params adc_params;
-
 void assign_command_message(uint8_t *buffer, t_protocol *prot)
 {
 	prot->command = buffer[0];

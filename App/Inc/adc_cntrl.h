@@ -12,7 +12,6 @@
 #include "stm32h7xx_hal_adc.h"
 #include <stdint.h>
 
-
 typedef struct {
     float    amplitude;
 	uint32_t resolution;
@@ -22,6 +21,8 @@ typedef struct {
     uint32_t timer_prescaler;
     uint32_t timer_arr;
 } t_adc_params;
+
+extern t_adc_params adc_params;
 
 void init_adc(ADC_HandleTypeDef *hadc, TIM_HandleTypeDef *htim, uint16_t *dma_buf, uint32_t len_tx_buf);
 

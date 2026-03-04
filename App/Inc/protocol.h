@@ -29,8 +29,6 @@ typedef union {
     float    as_float;
 } payload32_t;
 
-extern t_adc_params adc_params;
-
 void assign_command_message(uint8_t *buffer, t_protocol *prot);
 
 void process_command(t_protocol *prot);
