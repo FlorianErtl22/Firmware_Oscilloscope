@@ -49,6 +49,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Src/communication.c
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Src/adc_cntrl.c
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Src/protocol.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Src/trigger_detection.c
 )
 
 # Add include paths

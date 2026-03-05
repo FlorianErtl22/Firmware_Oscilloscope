@@ -22,6 +22,7 @@
 
 /* USER CODE BEGIN 0 */
 ADC_ChannelConfTypeDef sConfig_adc1 = {0};
+ADC_AnalogWDGConfTypeDef AnalogWDGConfig_adc1 = {0};
 /* USER CODE END 0 */
 
 ADC_HandleTypeDef hadc1;
@@ -36,6 +37,7 @@ void MX_ADC1_Init(void)
   /* USER CODE END ADC1_Init 0 */
 
   ADC_MultiModeTypeDef multimode = {0};
+  ADC_AnalogWDGConfTypeDef AnalogWDGConfig = {0};
   ADC_ChannelConfTypeDef sConfig = {0};
 
   /* USER CODE BEGIN ADC1_Init 1 */
@@ -73,11 +75,24 @@ void MX_ADC1_Init(void)
     Error_Handler();
   }
 
+  /** Configure Analog WatchDog 1
+  */
+  AnalogWDGConfig.WatchdogNumber = ADC_ANALOGWATCHDOG_1;
+  AnalogWDGConfig.WatchdogMode = ADC_ANALOGWATCHDOG_SINGLE_REG;
+  AnalogWDGConfig.Channel = ADC_CHANNEL_5;
+  AnalogWDGConfig.ITMode = DISABLE;
+  AnalogWDGConfig.HighThreshold = 0xFFFF;
+  AnalogWDGConfig.LowThreshold = 0;
+  if (HAL_ADC_AnalogWDGConfig(&hadc1, &AnalogWDGConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
   /** Configure Regular Channel
   */
   sConfig.Channel = ADC_CHANNEL_5;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_16CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_1;
   sConfig.Offset = 0x7fff;
@@ -87,8 +102,19 @@ void MX_ADC1_Init(void)
   {
     Error_Handler();
   }
+
+  /** Configure the regular channel to be monitored by WatchDog 2 or 3
+  */
+  AnalogWDGConfig.WatchdogNumber = ADC_ANALOGWATCHDOG_2;
+  AnalogWDGConfig.WatchdogMode = ADC_ANALOGWATCHDOG_SINGLE_REGINJEC;
+  AnalogWDGConfig.HighThreshold = 65535;
+  if (HAL_ADC_AnalogWDGConfig(&hadc1, &AnalogWDGConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN ADC1_Init 2 */
   sConfig_adc1 = sConfig;
+  AnalogWDGConfig_adc1 = AnalogWDGConfig;
   /* USER CODE END ADC1_Init 2 */
 
 }
@@ -152,6 +178,9 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
 
     __HAL_LINKDMA(adcHandle,DMA_Handle,hdma_adc1);
 
+    /* ADC1 interrupt Init */
+    HAL_NVIC_SetPriority(ADC_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(ADC_IRQn);
   /* USER CODE BEGIN ADC1_MspInit 1 */
 
   /* USER CODE END ADC1_MspInit 1 */
@@ -176,6 +205,9 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 
     /* ADC1 DMA DeInit */
     HAL_DMA_DeInit(adcHandle->DMA_Handle);
+
+    /* ADC1 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(ADC_IRQn);
   /* USER CODE BEGIN ADC1_MspDeInit 1 */
 
   /* USER CODE END ADC1_MspDeInit 1 */

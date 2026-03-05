@@ -28,15 +28,14 @@ t_adc_params adc_params;
  */
 void init_adc(ADC_HandleTypeDef *hadc, TIM_HandleTypeDef *htim, uint16_t *dma_buf, uint32_t len_tx_buf)
 {
-    HAL_TIM_Base_Stop(htim);
-    HAL_ADC_Stop_DMA(hadc);
+    // HAL_TIM_Base_Stop(htim);
+    // HAL_ADC_Stop_DMA(hadc);
 
     if (HAL_ADCEx_Calibration_Start(hadc, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED) != HAL_OK)
     {
         Error_Handler();
     }
 
-    // If the hardware rejects the configuration, halt immediately!
     if (HAL_ADC_Start_DMA(hadc, (uint32_t *)dma_buf, len_tx_buf) != HAL_OK)
     {
         Error_Handler();
@@ -68,8 +67,8 @@ void update_adc(t_adc_params *params, ADC_HandleTypeDef *hadc, TIM_HandleTypeDef
     {
         return;
     }
-    HAL_TIM_Base_Stop(htim);
-    HAL_ADC_Stop_DMA(hadc);
+    // HAL_TIM_Base_Stop(htim);
+    // HAL_ADC_Stop_DMA(hadc);
 
     uint32_t offset_val = 0;
 

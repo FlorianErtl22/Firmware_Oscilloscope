@@ -31,6 +31,8 @@ typedef union {
 
 void assign_command_message(uint8_t *buffer, t_protocol *prot);
 
+void tx_data(void);
+
 void process_command(t_protocol *prot);
 
 #endif /* PROTOCOL_H_ */
