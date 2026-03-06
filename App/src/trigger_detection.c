@@ -9,6 +9,9 @@
 #include "adc.h"
 #include "tim.h"
 
+#include "cmsis_os.h"
+extern osSemaphoreId_t xDataReadySemaphoreHandle;
+
 t_trigger_params trigger_params = {
     .type = TRIGGER_NONE,
     .max_threshold = 65535,     // Safe default max
@@ -150,6 +153,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         HAL_ADC_Stop_DMA(&hadc1);
 
         HAL_TIM_Base_Stop_IT(&htim4);
-        com_params.data_ready = 1;
+        
+        osSemaphoreRelease(xDataReadySemaphoreHandle);
     }
 }
