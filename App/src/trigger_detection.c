@@ -1,7 +1,13 @@
+/*
+* trigger_detection.c
+*
+*
+*/
 #include "trigger_detection.h"
 #include "main.h"
 #include "communication.h"
 #include "adc.h"
+#include "tim.h"
 
 t_trigger_params trigger_params = {
     .type = TRIGGER_NONE,
@@ -88,32 +94,28 @@ void set_trigger_params(t_trigger_params *trigger_params, ADC_HandleTypeDef *had
 
 void HAL_ADC_LevelOutOfWindowCallback(ADC_HandleTypeDef *hadc)
 {
-    // --- CASE A: SIMPLE LEVEL TRIGGERS ---
     if (trigger_params.type == TRIGGER_LEVEL_HIGH || trigger_params.type == TRIGGER_LEVEL_LOW)
     {
+        // Save current index
         uint32_t ndtr = __HAL_DMA_GET_COUNTER(hadc->DMA_Handle);
-
         com_params.trigger_index = TX_BUFFER_SIZE - ndtr;
-
-        // Handle wrap-around safety
+        
         if (com_params.trigger_index >= TX_BUFFER_SIZE)
-        {
             com_params.trigger_index = 0;
-        }
+
         com_params.trigger_detected = 1;
 
-        __HAL_ADC_DISABLE_IT(&hadc1, ADC_IT_AWD1);
-    }
+        // Start timer (Slave of ADC Timer) and disable IR
+        __HAL_ADC_DISABLE_IT(hadc, ADC_IT_AWD1);
+        __HAL_TIM_SET_COUNTER(&htim4, 0);
+        __HAL_TIM_SET_AUTORELOAD(&htim4, trigger_params.post_trigger_samples);
 
-    // --- CASE B: EDGE DETECTION ARMING ---
-    else if (trigger_params.type == TRIGGER_EDGE_RISING)
-    {
-        __HAL_ADC_DISABLE_IT(&hadc1, ADC_IT_AWD1);
-        __HAL_ADC_ENABLE_IT(&hadc1, ADC_IT_AWD2);
+        HAL_TIM_Base_Start_IT(&htim4);
     }
-    else if (trigger_params.type == TRIGGER_EDGE_FALLING)
+    else if ((trigger_params.type == TRIGGER_EDGE_RISING) || (trigger_params.type == TRIGGER_EDGE_FALLING))
     {
         __HAL_ADC_DISABLE_IT(&hadc1, ADC_IT_AWD1);
+        __HAL_ADC_CLEAR_FLAG(&hadc1, ADC_FLAG_AWD2);
         __HAL_ADC_ENABLE_IT(&hadc1, ADC_IT_AWD2);
     }
 }
@@ -122,16 +124,32 @@ void HAL_ADCEx_LevelOutOfWindow2Callback(ADC_HandleTypeDef *hadc)
 {
     if (trigger_params.type == TRIGGER_EDGE_RISING || trigger_params.type == TRIGGER_EDGE_FALLING)
     {
+        // Save current index
         uint32_t ndtr = __HAL_DMA_GET_COUNTER(hadc->DMA_Handle);
         com_params.trigger_index = TX_BUFFER_SIZE - ndtr;
-
-        // Handle wrap-around safety
+        
         if (com_params.trigger_index >= TX_BUFFER_SIZE)
-        {
             com_params.trigger_index = 0;
-        }
+
         com_params.trigger_detected = 1;
 
-        __HAL_ADC_DISABLE_IT(&hadc1, ADC_IT_AWD2);
+        // Start timer (Slave of ADC Timer) and disable IR
+        __HAL_ADC_DISABLE_IT(hadc, ADC_IT_AWD2);
+        __HAL_TIM_SET_COUNTER(&htim4, 0);
+        __HAL_TIM_SET_AUTORELOAD(&htim4, trigger_params.post_trigger_samples);
+
+        HAL_TIM_Base_Start_IT(&htim4);
+    }
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    if (htim->Instance == TIM4)
+    {
+        HAL_TIM_Base_Stop(&htim3);
+        HAL_ADC_Stop_DMA(&hadc1);
+
+        HAL_TIM_Base_Stop_IT(&htim4);
+        com_params.data_ready = 1;
     }
 }

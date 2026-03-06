@@ -96,6 +96,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_ADC1_Init();
   MX_TIM3_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   App_Init();
   // setvbuf(stdin, NULL, _IONBF, 0); //disable buffering for input stream

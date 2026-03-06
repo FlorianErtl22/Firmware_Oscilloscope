@@ -1,3 +1,8 @@
+/*
+*	protocol.c
+*
+*
+*/
 #include <string.h> // for memcpy
 
 #include "adc.h"
@@ -34,7 +39,7 @@ void tx_data(void)
 	// Determine where the DMA was about to write next
 	uint32_t write_index = TX_BUFFER_SIZE - ndtr;
 
-	// Safety catch: If NDTR was exactly 0 or glitchy, wrap to index 0
+	// If NDTR was exactly 0 or glitchy, wrap to index 0
 	if (write_index >= TX_BUFFER_SIZE)
 	{
 		write_index = 0;
@@ -61,45 +66,28 @@ void tx_data(void)
 void wait_and_send_trigger_data(void)
 {
 	// enable IR
+	__HAL_ADC_CLEAR_FLAG(&hadc1, ADC_FLAG_AWD1);
 	__HAL_ADC_ENABLE_IT(&hadc1, ADC_IT_AWD1);
 	// Record the exact millisecond we started waiting
 	uint32_t start_tick = HAL_GetTick();
 	const uint32_t TIMEOUT_MS = 3000; // 3 second timeout
 
-	while (com_params.trigger_detected == 0)
+	while (com_params.data_ready == 0)
 	{
 		if ((HAL_GetTick() - start_tick) > TIMEOUT_MS)
 		{
 			tx_data();
-			return;
+			// Stop timer
+			HAL_TIM_Base_Stop_IT(&htim4); 
+            
+            // Re-arm AWD
+            if (trigger_params.type != TRIGGER_NONE) {
+                __HAL_ADC_ENABLE_IT(&hadc1, ADC_IT_AWD1);
+            }
+            return;
 		}
 	}
 
-	uint32_t stop_index = (com_params.trigger_index + trigger_params.post_trigger_samples) % TX_BUFFER_SIZE;
-
-	while (1)
-	{
-		// Poll current DMA position
-		uint32_t ndtr = __HAL_DMA_GET_COUNTER(hadc1.DMA_Handle);
-		uint32_t current_index = TX_BUFFER_SIZE - ndtr;
-		if (current_index >= TX_BUFFER_SIZE)
-		{
-			current_index = 0;
-		}
-		// Calculate how far PAST the stop_index the DMA is right now
-		uint32_t overshoot = (current_index + TX_BUFFER_SIZE - stop_index) % TX_BUFFER_SIZE;
-
-		// If we are exactly at the stop_index, or overshot it by up to 5 samples, pull the brake!
-		if (overshoot <= 5)
-		{
-			HAL_TIM_Base_Stop(&htim3);
-			HAL_ADC_Stop_DMA(&hadc1);
-			break;
-		}
-	}
-
-
-	// --- 4. STITCH AND TRANSMIT ---
 	uint32_t start_index = (com_params.trigger_index + TX_BUFFER_SIZE - trigger_params.pre_trigger_samples) % TX_BUFFER_SIZE;
 
 	uint32_t elements_part1 = TX_BUFFER_SIZE - start_index;
@@ -116,6 +104,7 @@ void wait_and_send_trigger_data(void)
 	}
 
 	com_params.trigger_detected = 0;
+	com_params.data_ready = 0;
 
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t *)tx_buf, TX_BUFFER_SIZE);
 	HAL_TIM_Base_Start(&htim3);

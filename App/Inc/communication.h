@@ -16,6 +16,7 @@ typedef struct
 {
     uint32_t trigger_index;
     uint8_t trigger_detected;
+    uint8_t data_ready;
 } t_com_params;
 
 extern t_com_params com_params;
