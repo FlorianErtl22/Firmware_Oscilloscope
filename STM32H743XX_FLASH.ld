@@ -240,6 +240,18 @@ SECTIONS
     . = ALIGN(8);
   } >DTCMRAM
 
+   /* Modification start */
+  .lwip_sec (NOLOAD) :
+  {
+    . = ABSOLUTE(0x30040000);
+    *(.RxDecripSection) 
+    
+    . = ABSOLUTE(0x30040060);
+    *(.TxDecripSection)
+    
+    . = ABSOLUTE(0x30040200);
+    *(.Rx_PoolSection)  
+  } >RAM_D2
 
 
   /* Remove information from the standard libraries */
@@ -249,6 +261,7 @@ SECTIONS
     libm.a:* ( * )
     libgcc.a:* ( * )
   }
+  /* Modification end */
   /* User-defined section for DMA buffers in RAM_D2 */
   .ram_d2_section :
   {
@@ -257,4 +270,5 @@ SECTIONS
     *(.RAM_D2*)      /* Catch variations of the tag */
     . = ALIGN(4);
   } >RAM_D2
+
 }

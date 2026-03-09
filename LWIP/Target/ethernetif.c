@@ -55,7 +55,8 @@
 /* ETH_RX_BUFFER_SIZE parameter is defined in lwipopts.h */
 
 /* USER CODE BEGIN 1 */
-
+#undef LWIP_PROVIDE_ERRNO
+#define LWIP_ERRNO_STDINCLUDE
 /* USER CODE END 1 */
 
 /* Private variables ---------------------------------------------------------*/
