@@ -25,7 +25,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "app_main.h"
+#include "adc_cntrl.h"
+#include "communication.h"
+#include "protocol.h"
+#include "trigger_detection.h"
+#include "tim.h"
+#include "adc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -137,7 +143,7 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    App_Loop();
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -152,10 +158,59 @@ void StartDefaultTask(void *argument)
 void StartTask02(void *argument)
 {
   /* USER CODE BEGIN StartTask02 */
-  /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    // Wait forever for Python to send 0x02
+    osThreadFlagsWait(0x01, osFlagsWaitAny, osWaitForever);
+
+    // Eat any stale semaphore tokens from previous runs
+    while (osSemaphoreAcquire(xDataReadySemaphoreHandle, 0) == osOK) {}
+
+    // Free-Run vs Triggered Capture
+    if (trigger_params.type == TRIGGER_NONE)
+    {
+        // Free-Run: Kill watchdogs and instantly transmit
+        __HAL_ADC_DISABLE_IT(&hadc1, ADC_IT_AWD1);
+        __HAL_ADC_DISABLE_IT(&hadc1, ADC_IT_AWD2);
+        tx_data(); 
+    }
+    else
+    {
+        // Triggered: Arm the hardware Watchdog
+        __HAL_ADC_CLEAR_FLAG(&hadc1, ADC_FLAG_AWD1);
+        __HAL_ADC_ENABLE_IT(&hadc1, ADC_IT_AWD1);
+
+        // Wait up to 3000ms for the hardware to fire the semaphore
+        osStatus_t status = osSemaphoreAcquire(xDataReadySemaphoreHandle, 3000);
+
+        if (status == osOK)
+        {
+            // --- REAL TRIGGER ---
+            uint32_t start_index = (com_params.trigger_index + TX_BUFFER_SIZE - trigger_params.pre_trigger_samples) % TX_BUFFER_SIZE;
+            uint32_t elements_part1 = TX_BUFFER_SIZE - start_index;
+            uint32_t elements_part2 = start_index;
+
+            if (elements_part1 > 0) {
+                HAL_UART_Transmit(&huart3, (uint8_t *)&tx_buf[start_index], (elements_part1 * sizeof(uint16_t)), 10000);
+            }
+            if (elements_part2 > 0) {
+                HAL_UART_Transmit(&huart3, (uint8_t *)&tx_buf[0], (elements_part2 * sizeof(uint16_t)), 10000);
+            }
+        }
+        else 
+        {
+            // --- 3-SECOND TIMEOUT ---
+            HAL_TIM_Base_Stop_IT(&htim4);
+            __HAL_ADC_DISABLE_IT(&hadc1, ADC_IT_AWD1);
+            __HAL_ADC_DISABLE_IT(&hadc1, ADC_IT_AWD2);
+            tx_data();
+        }
+    }
+
+    // Clear Overrun flag and restart hardware
+    __HAL_ADC_CLEAR_FLAG(&hadc1, ADC_FLAG_OVR);
+    HAL_ADC_Start_DMA(&hadc1, (uint32_t *)tx_buf, TX_BUFFER_SIZE);
+    HAL_TIM_Base_Start(&htim3);
   }
   /* USER CODE END StartTask02 */
 }

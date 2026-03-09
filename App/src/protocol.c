@@ -14,6 +14,10 @@
 #include "adc_cntrl.h"
 #include "trigger_detection.h"
 
+#include "cmsis_os.h"
+
+extern osThreadId_t vTransmitTaskHandle;
+
 #define MAX_VALID_ID (sizeof(parameter_map) / sizeof(parameter_map[0]) - 1)
 
 void assign_command_message(uint8_t *buffer, t_protocol *prot)
@@ -63,53 +67,6 @@ void tx_data(void)
 	HAL_TIM_Base_Start(&htim3);
 }
 
-void wait_and_send_trigger_data(void)
-{
-	// enable IR
-	__HAL_ADC_CLEAR_FLAG(&hadc1, ADC_FLAG_AWD1);
-	__HAL_ADC_ENABLE_IT(&hadc1, ADC_IT_AWD1);
-	// Record the exact millisecond we started waiting
-	uint32_t start_tick = HAL_GetTick();
-	const uint32_t TIMEOUT_MS = 3000; // 3 second timeout
-
-	while (com_params.data_ready == 0)
-	{
-		if ((HAL_GetTick() - start_tick) > TIMEOUT_MS)
-		{
-			tx_data();
-			// Stop timer
-			HAL_TIM_Base_Stop_IT(&htim4); 
-            
-            // Re-arm AWD
-            if (trigger_params.type != TRIGGER_NONE) {
-                __HAL_ADC_ENABLE_IT(&hadc1, ADC_IT_AWD1);
-            }
-            return;
-		}
-	}
-
-	uint32_t start_index = (com_params.trigger_index + TX_BUFFER_SIZE - trigger_params.pre_trigger_samples) % TX_BUFFER_SIZE;
-
-	uint32_t elements_part1 = TX_BUFFER_SIZE - start_index;
-	uint32_t elements_part2 = start_index;
-
-	if (elements_part1 > 0)
-	{
-		HAL_UART_Transmit(&huart3, (uint8_t *)&tx_buf[start_index], (elements_part1 * sizeof(uint16_t)), 10000);
-	}
-
-	if (elements_part2 > 0)
-	{
-		HAL_UART_Transmit(&huart3, (uint8_t *)&tx_buf[0], (elements_part2 * sizeof(uint16_t)), 10000);
-	}
-
-	com_params.trigger_detected = 0;
-	com_params.data_ready = 0;
-
-	HAL_ADC_Start_DMA(&hadc1, (uint32_t *)tx_buf, TX_BUFFER_SIZE);
-	HAL_TIM_Base_Start(&htim3);
-}
-
 static void *const parameter_map[] = {
 	[0x01] = &adc_params.amplitude,
 	[0x02] = &adc_params.resolution,
@@ -140,17 +97,7 @@ void process_command(t_protocol *prot)
 
 	// run
 	case 0x02:
-		// Call ADC_DMA_Start
-		// Uart_transmit
-		if (trigger_params.type == TRIGGER_NONE)
-		{
-			tx_data();
-		}
-		else
-		{
-			wait_and_send_trigger_data();
-		}
-
+		osThreadFlagsSet(vTransmitTaskHandle, 0x01);
 		break;
 
 	// run config

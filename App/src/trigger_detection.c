@@ -144,16 +144,3 @@ void HAL_ADCEx_LevelOutOfWindow2Callback(ADC_HandleTypeDef *hadc)
         HAL_TIM_Base_Start_IT(&htim4);
     }
 }
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-    if (htim->Instance == TIM4)
-    {
-        HAL_TIM_Base_Stop(&htim3);
-        HAL_ADC_Stop_DMA(&hadc1);
-
-        HAL_TIM_Base_Stop_IT(&htim4);
-        
-        osSemaphoreRelease(xDataReadySemaphoreHandle);
-    }
-}

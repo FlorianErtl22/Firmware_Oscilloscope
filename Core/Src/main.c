@@ -32,7 +32,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+extern osSemaphoreId_t xDataReadySemaphoreHandle;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -125,7 +125,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    App_Loop();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -230,11 +229,11 @@ void MPU_Config(void)
   /** Initializes and configures the Region and the memory to be protected
   */
   MPU_InitStruct.Enable = MPU_REGION_ENABLE;
-  MPU_InitStruct.BaseAddress = 0x30040000;
-  MPU_InitStruct.Size = MPU_REGION_SIZE_32KB;
+  MPU_InitStruct.BaseAddress = 0x30000000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_256KB;
   MPU_InitStruct.SubRegionDisable = 0x0;
   MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
-  MPU_InitStruct.AccessPermission = MPU_REGION_NO_ACCESS;
+  MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
   MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
   MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
@@ -264,7 +263,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
+  if (htim->Instance == TIM4)
+  {
+      HAL_TIM_Base_Stop(&htim3);
+      HAL_ADC_Stop_DMA(&hadc1);
+      HAL_TIM_Base_Stop_IT(&htim4);
 
+      // Wake up the Transmit Task!
+      osSemaphoreRelease(xDataReadySemaphoreHandle);
+  }
   /* USER CODE END Callback 1 */
 }
 
